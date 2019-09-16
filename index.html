@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://bootswatch.com/4/solar/bootstrap.css" >
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <title>Chatter</title>
+    <style>
+        /* Custom style of chat view */
+        #chat{  height:350px;
+                padding: 10px;
+                overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3 col-sm-12">
+                <h1 class="text-center">Chatter <button id="clear" class="btn btn-danger">Clear</button></h1>
+   
+                <form id="username-form">
+                    <input type="text" id="username" class="form-control" placeholder="Enter username..." required />
+                </form>
+
+            <div class="card">
+                    <div class="card-header" id="info">
+                            <h6 class="card-subtitle text-center"></h6>
+                    </div>
+            <div class="list-group active" id="chat">
+
+            </div>
+        </div>
+    <br>
+        <form id="chat-form">
+                <select id="select" class="form-control">
+                    <option value="">Public</option>
+                </select>
+                <br>
+            <textarea id="chat-content" class="form-control" placeholder="Enter message..." required></textarea>
+            <button  class="btn btn-block btn-primary" type="submit">Send</button>
+        </form>
+        </div>
+    </div>
+    </div>
+</body>
+    <!-- Call necessary js libraries -->
+    <script src="js/jquery.min.js"></script>
+    <script src="socket/socket.io.js"></script>
+    <script>
+            /**
+             * Client Side Socket.
+             * 
+             * @type   {number}
+             * @var    {string}
+             * 
+             */
+                var socket = io.connect('http://127.0.0.1:4001');
+                    var my_username = null;
+                    $("#chat-form").hide();
+                    $("#clear").hide();
+                    var $u = $("#username");
+                    /**
+                     *Emit add user with username value. 
+                     */
+                    $("#username-form").on("submit", function(){
+                        socket.emit("add-user", {"username": $u.val()});
+                        $(this).hide();
+                        $("#info h6").append(
+                                $("<strong>", {
+                                    "text":  "Logged in as: " + $u.val()})
+                        );
+                        socket.on("users", function(arr){
+                    /**
+                     * Populate select option with list of users.
+                     */
+                    var select = document.getElementById("select");
+                    for(var i = 0; i < arr.length; i++)
+                    {
+                        var option = document.createElement("option");
+                        option.value = arr[i];
+                        option.text = arr[i];
+                        select.appendChild(option);
+                    }});
+                        $("#chat-form").show();
+                        $("#clear").show();
+                        my_username = $u.val();
+                        return false;
+                });
+                    /**
+                     * When message submitted, emit send-message.
+                     */
+                     $("#chat-form").on("submit", function(){
+                        socket.emit("send-message", {
+                            "username": $("#select").val(),
+                            "from": my_username,
+                            "content": $("#chat-content").val()
+                        });
+                        event.preventDefault();
+                        $("#chat-to, #chat-content").val("");
+                        return false;
+                    });
+                        /**
+                         * Identify new message, display appropriatelly.
+                         */
+                        socket.on("new-message", function(msg){
+                            var private_warning = "";
+                            if (msg.username != "__public__") {
+                                private_warning = "[Private] ";
+                            }
+                            $("#chat").append('<div class="text-light bg-dark" ><strong>'+private_warning + msg.from + '</strong>'+ ' : '+msg.content + '</div>');
+                        });
+                        /**
+                         * Load chat history of the logged in user.
+                         */
+                        socket.on("history", function(msg){
+                            var private_warning = "";
+                            if(msg.length){
+                        for(var x = 0;x < msg.length;x++){
+                            // Build out message div
+                            if (msg[x].towhom != "__public__") {
+                                private_warning = "[Private Msg] ";
+                            /**
+                             *  Distinguish if message is public or private, designate accordingly.
+                             */
+                            var message = document.createElement('div');
+                            message.setAttribute('class', 'chat-message');
+                            message.textContent = private_warning +  msg[x].username+": "+msg[x].message +" [with " +msg[x].towhom + "]";
+                            chat.appendChild(message);
+                            chat.insertBefore(message, chat.firstChild);
+                            }else{
+                            var message = document.createElement('div');
+                            message.setAttribute('class', 'chat-message');
+                            message.textContent = msg[x].username+": "+msg[x].message;
+                            chat.appendChild(message);
+                            chat.insertBefore(message, chat.firstChild);
+                        }
+                    }
+                        $("#chat").append('*************************************************'); 
+                }
+                /**
+                 * Clear out chat view.
+                 */
+                clear.addEventListener('click', function(){
+                    chat.textContent = '';
+                });
+
+            });
+    </script>
+</html>

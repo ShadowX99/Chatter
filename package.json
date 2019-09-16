@@ -1,0 +1,20 @@
+{
+  "name": "chatter",
+  "version": "1.0.0",
+  "description": "Simple chat application using Socket.io and MongoDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
+  },
+  "author": "Arefat",
+  "license": "ISC",
+  "dependencies": {
+    "jsdoc": "^3.6.3",
+    "mongodb": "2.2.30",
+    "socket.io": "^2.0.3"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.5.5"
+  }
+}
