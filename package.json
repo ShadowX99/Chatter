@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "jsdoc": "^3.6.3",
-    "mongodb": "2.2.30",
+    "mongodb": "3.6.1",
     "socket.io": "^2.0.3"
   },
   "devDependencies": {
